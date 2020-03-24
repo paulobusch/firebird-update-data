@@ -5,12 +5,11 @@ const _ = require('lodash');
 
 console.log('Atualizando...');
 
-const recursive = (partial, time) => {
-    if (partial * Config.limit >= Config.total) {
+const recursive = (offset, time) => {
+    if (offset >= Config.total) {
         console.log('Fim...');
         return;
     }
-    const offset = partial * Config.limit;
     const pool = Firebird.pool(5, FdbConfig);
     const timeStr = time ? ` Time: ${(new Date() - time) / 1000} s` : '';
     console.log('Processando: ' + (offset + Config.limit) + ' / ' + Config.total + timeStr);
@@ -21,9 +20,9 @@ const recursive = (partial, time) => {
         db.query(query, null, (err, result) => {
             if (err) throw err;
             db.detach();
-            recursive(partial + 1, startTime);
+            recursive(offset + Config.limit, startTime);
         });
     });
 }
 
-recursive(0, null);
+recursive(50000000, null);
