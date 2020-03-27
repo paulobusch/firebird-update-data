@@ -16,7 +16,7 @@ const recursive = (offset, time) => {
     const startTime = new Date();
     pool.get((err, db) => {
         if (err) throw err;
-        const query = `UPDATE CONSULTA SET CON_SOBRENOME=TRIM(RIGHT(CON_NOME, POSITION(' ', REVERSE(CON_NOME)))) where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
+        const query = `UPDATE CONSULTA1 SET CON_SOBRENOME=TRIM(RIGHT(CON_NOME, POSITION(' ', REVERSE(CON_NOME)))) where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
         db.query(query, null, (err, result) => {
             if (err) throw err;
             db.detach();
