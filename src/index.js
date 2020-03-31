@@ -23,21 +23,19 @@ const castStr = (raw) => raw ? raw.toString('utf-8') : raw;
 const castDate = (raw) => raw ? new Date(castStr(raw)) : raw;
 
 console.log('importando...');
-const recursive = (offset, time) => {
+const recursive = (offset, timeQuery, timeInsert) => {
     if (offset >= Config.total) {
         connection.end();
         console.log('Fim...');
         return;
     }
     const pool = Firebird.pool(5, FdbConfig);
-    const timeStr = time ? ` Time: ${(new Date() - time) / 1000} s` : '';
+    const timeStr = ` Time Query: ${timeQuery} s | Time Insert: ${timeInsert} s`;
     console.log('Processando: ' + (offset + Config.limit) + ' / ' + Config.total + timeStr);
-    const startTime = new Date();
     pool.get((err, db) => {
         if (err) throw err;
         const query = `
             select 
-                first ${Config.limit} skip ${offset}
                 CON_CODIGO as ID,
                 CON_CPFCNPJ as CPF_CNPJ,
                 CON_NOME as FULL_NAME,
@@ -50,11 +48,13 @@ const recursive = (offset, time) => {
                 CON_UF as STATE_UF,
                 CON_DATANASCIMENTO as BIRTH_DATE,
                 CON_FONE as PHONE
-            from consulta;`;
+            from consulta
+            where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
+        const startQuery = new Date();
         db.query(query, null, async (err, list) => {
             if (err) throw err;
             db.detach();
-
+            const durationQuery = (new Date() - startQuery) / 1000;
             const ImportRows = [];
             for (let index in list) {
                 const raw = list[index];
@@ -75,18 +75,19 @@ const recursive = (offset, time) => {
                     castStr(raw['PHONE'])
                 ]);
             }
-
             const queryInsert = Query.get('peoples', Columns.peoples, ImportRows);
+            const startInsert = new Date();
             connection.beginTransaction((err) => {
                 if (err) { throw err; }
                 connection.query(queryInsert, null, function (err, result) {
                     if (err) throw err;
                     connection.commit();
+                    const durationInsert = (new Date() - startInsert) / 1000;
+                    recursive(offset + Config.limit, durationQuery, durationInsert);
                 });
-                recursive(offset + Config.limit, startTime);
             });
         });
     });
 }
 
-recursive(0, null);
+recursive(15000000, null, null);
