@@ -2,9 +2,13 @@ const { Config, Columns, FdbConfig, MySqlConfig } = require('../config');
 const { Query } = require('./utils/query');
 
 var Firebird = require('node-firebird');
-const mysql = require('sync-mysql');
+const mysql = require('mysql');
 
-const connection = new mysql(MySqlConfig);
+const connection = mysql.createConnection(MySqlConfig);
+
+connection.connect((err) => { if (err) throw err; });
+connection.query('SET autocommit=0;');
+
 const getText = (txt) => {
     if (!txt) return null;
     return txt
@@ -21,6 +25,7 @@ const castDate = (raw) => raw ? new Date(castStr(raw)) : raw;
 console.log('importando...');
 const recursive = (offset, time) => {
     if (offset >= Config.total) {
+        connection.end();
         console.log('Fim...');
         return;
     }
@@ -71,8 +76,15 @@ const recursive = (offset, time) => {
                 ]);
             }
 
-            await connection.query(Query.get('peoples', Columns.peoples, ImportRows));
-            recursive(offset + Config.limit, startTime);
+            const queryInsert = Query.get('peoples', Columns.peoples, ImportRows);
+            connection.beginTransaction((err) => {
+                if (err) { throw err; }
+                connection.query(queryInsert, null, function (err, result) {
+                    if (err) throw err;
+                    connection.commit();
+                });
+                recursive(offset + Config.limit, startTime);
+            });
         });
     });
 }

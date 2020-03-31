@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^4.17.15",
-    "node-firebird": "^0.8.9",
-    "sync-mysql": "^3.0.1"
+    "mysql": "^2.18.1",
+    "node-firebird": "^0.8.9"
   }
 }
