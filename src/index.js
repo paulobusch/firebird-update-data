@@ -2,12 +2,9 @@ const { Config, Columns, FdbConfig, MySqlConfig } = require('../config');
 const { Query } = require('./utils/query');
 
 var Firebird = require('node-firebird');
-const mysql = require('mysql');
+const mysql = require('sync-mysql');
 
-const connection = mysql.createConnection(MySqlConfig);
-
-connection.connect((err) => { if (err) throw err; });
-connection.query('SET autocommit=0;');
+const connection = new mysql(MySqlConfig);
 
 const getText = (txt) => {
     if (!txt) return null;
@@ -51,7 +48,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
             from consulta
             where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
         const startQuery = new Date();
-        db.query(query, null, async (err, list) => {
+        db.query(query, null, (err, list) => {
             if (err) throw err;
             db.detach();
             const durationQuery = (new Date() - startQuery) / 1000;
@@ -77,15 +74,9 @@ const recursive = (offset, timeQuery, timeInsert) => {
             }
             const queryInsert = Query.get('peoples', Columns.peoples, ImportRows);
             const startInsert = new Date();
-            connection.beginTransaction((err) => {
-                if (err) { throw err; }
-                connection.query(queryInsert, null, function (err, result) {
-                    if (err) throw err;
-                    connection.commit();
-                    const durationInsert = (new Date() - startInsert) / 1000;
-                    recursive(offset + Config.limit, durationQuery, durationInsert);
-                });
-            });
+            connection.query(queryInsert);
+            const durationInsert = (new Date() - startInsert) / 1000;
+            recursive(offset + Config.limit, durationQuery, durationInsert);
         });
     });
 }
