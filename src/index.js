@@ -1,15 +1,22 @@
 const { Config, Columns, FdbConfig, MySqlConfig } = require('../config');
 const { Query } = require('./utils/query');
+const { Storage } = require('./utils/storage');
 
 var Firebird = require('node-firebird');
 const mysql = require('sync-mysql');
-
+const storage = new Storage('config.ini');
 const connection = new mysql(MySqlConfig);
 
 const getText = (txt) => {
     if (!txt) return null;
     return txt
         .replace(/[^a-z^ ]/gi, '');
+}
+const getLastName = (full_name) => {
+    if (!full_name) return null;
+    const parts = full_name.split(' ');
+    if (parts.length === 1) return null;
+    return parts[parts.length - 1];
 }
 const getNumber = (txt) => {
     if (!txt) return null;
@@ -29,6 +36,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
     const pool = Firebird.pool(5, FdbConfig);
     const timeStr = ` Time Query: ${timeQuery} s | Time Insert: ${timeInsert} s`;
     console.log('Processando: ' + (offset + Config.limit) + ' / ' + Config.total + timeStr);
+    storage.set({ count: offset + Config.limit });
     pool.get((err, db) => {
         if (err) throw err;
         const query = `
@@ -36,7 +44,6 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 CON_CODIGO as ID,
                 CON_CPFCNPJ as CPF_CNPJ,
                 CON_NOME as FULL_NAME,
-                CON_SOBRENOME as LAST_NAME,
                 CON_ENDERECO as ADDRESS,
                 CON_COMPLEMENTO as COMPLEMENT,
                 CON_BAIRRO as NEIGHBORHOOD,
@@ -56,10 +63,11 @@ const recursive = (offset, timeQuery, timeInsert) => {
             for (let index in list) {
                 const raw = list[index];
                 const cpf_cnpj = getNumber(castStr(raw['CPF_CNPJ'])) || '';
+                const full_name = getText(castStr(raw['FULL_NAME']));
                 ImportRows.push([
                     raw['ID'],
-                    getText(castStr(raw['FULL_NAME'])),
-                    getText(castStr(raw['LAST_NAME'])),
+                    full_name,
+                    getLastName(full_name),
                     cpf_cnpj.length === 11 ? cpf_cnpj : null,
                     cpf_cnpj.length === 14 ? cpf_cnpj : null,
                     castStr(raw['ADDRESS']),
@@ -81,4 +89,5 @@ const recursive = (offset, timeQuery, timeInsert) => {
     });
 }
 
-recursive(15000000, null, null);
+const conf = storage.get({ count: 0 });
+recursive(conf.count, null, null);

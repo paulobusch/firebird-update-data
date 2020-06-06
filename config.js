@@ -1,6 +1,6 @@
 module.exports = {
     Config: {
-        total: 187845603,
+        total: 86604865,
         limit: 10000,
     },
     FdbConfig: {
