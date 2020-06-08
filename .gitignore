@@ -1,6 +1,6 @@
 # IDEs and editors
 .vs
-.ini
+*.ini
 *.bak
 
 # Files

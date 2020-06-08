@@ -16,6 +16,6 @@ module.exports = {
         database: 'vetorial'
     },
     Columns: {
-        peoples: ['id', 'full_name', 'last_name', 'cpf', 'cnpj', 'address', 'complement', 'neighborhood', 'cep', 'city_name', 'state_uf', 'birth_date', 'phone']
+        peoples: ['full_name', 'last_name', 'cpf', 'cnpj', 'address', 'complement', 'neighborhood', 'cep', 'city_name', 'state_uf', 'birth_date', 'phone']
     }
 }

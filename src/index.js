@@ -36,12 +36,10 @@ const recursive = (offset, timeQuery, timeInsert) => {
     const pool = Firebird.pool(5, FdbConfig);
     const timeStr = ` Time Query: ${timeQuery} s | Time Insert: ${timeInsert} s`;
     console.log('Processando: ' + (offset + Config.limit) + ' / ' + Config.total + timeStr);
-    storage.set({ count: offset + Config.limit });
     pool.get((err, db) => {
         if (err) throw err;
         const query = `
             select 
-                CON_CODIGO as ID,
                 CON_CPFCNPJ as CPF_CNPJ,
                 CON_NOME as FULL_NAME,
                 CON_ENDERECO as ADDRESS,
@@ -52,7 +50,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 CON_UF as STATE_UF,
                 CON_DATANASCIMENTO as BIRTH_DATE,
                 CON_FONE as PHONE
-            from consulta
+            from consulta1
             where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
         const startQuery = new Date();
         db.query(query, null, (err, list) => {
@@ -65,7 +63,6 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 const cpf_cnpj = getNumber(castStr(raw['CPF_CNPJ'])) || '';
                 const full_name = getText(castStr(raw['FULL_NAME']));
                 ImportRows.push([
-                    raw['ID'],
                     full_name,
                     getLastName(full_name),
                     cpf_cnpj.length === 11 ? cpf_cnpj : null,
@@ -80,9 +77,10 @@ const recursive = (offset, timeQuery, timeInsert) => {
                     castStr(raw['PHONE'])
                 ]);
             }
-            const queryInsert = Query.get('peoples', Columns.peoples, ImportRows);
+            const queryInsert = Query.get('peoples_big_data', Columns.peoples, ImportRows);
             const startInsert = new Date();
             connection.query(queryInsert);
+            storage.set({ count: offset + Config.limit });
             const durationInsert = (new Date() - startInsert) / 1000;
             recursive(offset + Config.limit, durationQuery, durationInsert);
         });
