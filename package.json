@@ -9,6 +9,7 @@
   "author": "paulo",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "lodash": "^4.17.15",
     "mysql": "^2.18.1",
     "node-firebird": "^0.8.9",
