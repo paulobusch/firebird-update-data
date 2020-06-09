@@ -6,4 +6,4 @@
 # Files
 /.sass-cache
 /node_modules
-/assets/.env
+.env

@@ -1,11 +1,19 @@
-const { Config, Columns, FdbConfig, MySqlConfig } = require('../config');
+const { Config, Columns } = require('../config');
 const { Query } = require('./utils/query');
 const { Storage } = require('./utils/storage');
+const dotenv = require('dotenv');
+dotenv.config({ path: '.env' });
 
 var Firebird = require('node-firebird');
 const mysql = require('sync-mysql');
 const storage = new Storage('config.ini');
-const connection = new mysql(MySqlConfig);
+const connection = new mysql({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
+});
 
 const getText = (txt) => {
     if (!txt) return null;
@@ -33,7 +41,11 @@ const recursive = (offset, timeQuery, timeInsert) => {
         console.log('Fim...');
         return;
     }
-    const pool = Firebird.pool(5, FdbConfig);
+    const pool = Firebird.pool(5, {
+        database: process.env.FDB_DB_PATH,
+        user: process.env.FDB_DB_USER,
+        password: process.env.FDB_DB_PASS
+    });
     const timeStr = ` Time Query: ${timeQuery} s | Time Insert: ${timeInsert} s`;
     console.log('Processando: ' + (offset + Config.limit) + ' / ' + Config.total + timeStr);
     pool.get((err, db) => {
