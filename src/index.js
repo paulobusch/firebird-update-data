@@ -51,6 +51,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
         if (err) throw err;
         const query = `
             select 
+                CON_CODIGO as ID,
                 CON_CPFCNPJ as CPF_CNPJ,
                 CON_NOME as FULL_NAME,
                 CON_ENDERECO as ADDRESS,
@@ -73,6 +74,8 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 const raw = list[index];
                 const cpf_cnpj = getNumber(castStr(raw['CPF_CNPJ'])) || '';
                 const full_name = getText(castStr(raw['FULL_NAME']));
+                const id = parseInt(raw['ID']);
+                if (id > 86620000 && id < 91200000) continue;
                 ImportRows.push([
                     full_name,
                     getLastName(full_name),
@@ -90,7 +93,8 @@ const recursive = (offset, timeQuery, timeInsert) => {
             }
             const queryInsert = Query.get('peoples_big_data', Columns.peoples, ImportRows);
             const startInsert = new Date();
-            connection.query(queryInsert);
+            if (ImportRows.length > 0)
+                connection.query(queryInsert);
             storage.set({ count: offset + Config.limit });
             const durationInsert = (new Date() - startInsert) / 1000;
             recursive(offset + Config.limit, durationQuery, durationInsert);
