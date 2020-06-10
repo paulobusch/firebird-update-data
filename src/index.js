@@ -37,7 +37,6 @@ const castDate = (raw) => raw ? new Date(castStr(raw)) : raw;
 console.log('importando...');
 const recursive = (offset, timeQuery, timeInsert) => {
     if (offset >= Config.total) {
-        connection.end();
         console.log('Fim...');
         return;
     }
@@ -62,7 +61,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 CON_UF as STATE_UF,
                 CON_DATANASCIMENTO as BIRTH_DATE,
                 CON_FONE as PHONE
-            from consulta1
+            from consulta
             where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
         const startQuery = new Date();
         db.query(query, null, (err, list) => {
