@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 var Firebird = require('node-firebird');
 const mysql = require('sync-mysql');
-const storage = new Storage('config.ini');
+const storage = new Storage('config_nova.ini');
 const connection = new mysql({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -91,7 +91,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
                     castStr(raw['PHONE'])
                 ]);
             }
-            const queryInsert = Query.get('peoples_big_data', Columns.peoples, ImportRows);
+            const queryInsert = Query.get('peoples', Columns.peoples, ImportRows);
             const startInsert = new Date();
             if (ImportRows.length > 0)
                 connection.query(queryInsert);
