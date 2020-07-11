@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 var Firebird = require('node-firebird');
 const mysql = require('sync-mysql');
-const storage = new Storage('config_nova.ini');
+const storage = new Storage('config_last_part.ini');
 const connection = new mysql({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -62,7 +62,7 @@ const recursive = (offset, timeQuery, timeInsert) => {
                 CON_UF as STATE_UF,
                 CON_DATANASCIMENTO as BIRTH_DATE,
                 CON_FONE as PHONE
-            from consulta
+            from consulta1
             where CON_CODIGO >= ${offset} and CON_CODIGO < ${offset + Config.limit};`;
         const startQuery = new Date();
         db.query(query, null, (err, list) => {
